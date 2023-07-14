@@ -6,6 +6,7 @@ import {
   SafeAreaView,
   TextInput,
   Image,
+  Alert,
 } from "react-native";
 import React, { useState, useLayoutEffect } from "react";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -29,7 +30,6 @@ const HomeScreen = () => {
   const [modalVisibile, setModalVisibile] = useState(false);
   const navigation = useNavigation();
   const route = useRoute();
-
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -69,6 +69,29 @@ const HomeScreen = () => {
     );
   };
 
+  const search = () => {
+    if (!route.params || !selectedDates) {
+      return Alert.alert("Invalid Details", "Please enter all the details", [
+        {
+          text: "Cancel",
+          onPress: () => console.log("Cancel Pressed"),
+          style: "cancel",
+        },
+        { text: "OK", onPress: () => console.log("OK Pressed") },
+      ]);
+    }
+
+    if (route.params && selectedDates) {
+      navigation.navigate("Places", {
+        rooms,
+        adults,
+        children,
+        selectedDates,
+        place: route?.params.input,
+      });
+    }
+  };
+
   return (
     <>
       <SafeAreaView>
@@ -98,7 +121,11 @@ const HomeScreen = () => {
               <Feather name="search" size={24} color="black" />
               <TextInput
                 placeholderTextColor="black"
-                placeholder={route.params.input ? route.params.input :"Enter Destination" }
+                placeholder={
+                  route?.params?.input
+                    ? route?.params.input
+                    : "Enter Destination"
+                }
               />
             </Pressable>
             {/* Selected Dates */}
@@ -170,6 +197,7 @@ const HomeScreen = () => {
             </Pressable>
             {/* Search Button */}
             <Pressable
+              onPress={search}
               style={{
                 paddingHorizontal: 10,
                 borderColor: "#FFC72C",
