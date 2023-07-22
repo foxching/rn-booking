@@ -5,6 +5,8 @@ import { Pressable } from "react-native";
 import { Octicons } from "@expo/vector-icons";
 import { Ionicons } from "@expo/vector-icons";
 import { FontAwesome5 } from "@expo/vector-icons";
+import { FontAwesome } from "@expo/vector-icons";
+import { Entypo } from "@expo/vector-icons";
 import { data } from "../data/place";
 import PropertyCard from "../components/PropertyCard";
 import {
@@ -20,7 +22,24 @@ const PlacesScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const [modalVisibile, setModalVisibile] = useState(false);
+  const [selectedFilter, setSelectedFilter] = useState("");
+  const [sortedDate, setSortedData] = useState(data);
   const { rooms, adult, children, selectedDates } = route;
+
+  const searchPlaces = data?.filter(
+    (item) => item.place === route.params.place
+  );
+
+  const filters = [
+    {
+      id: "0",
+      filter: "cost:Low to High",
+    },
+    {
+      id: "1",
+      filter: "cost:High to Low",
+    },
+  ];
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -40,6 +59,40 @@ const PlacesScreen = () => {
       },
     });
   }, []);
+
+  const compare = (a, b) => {
+    if (a.newPrice > b.newPrice) {
+      return -1;
+    }
+    if (a.newPrice < b.newPrice) {
+      return 1;
+    }
+    return 0;
+  };
+
+  const comparison = (a, b) => {
+    if (a.newPrice < b.newPrice) {
+      return -1;
+    }
+    if (a.newPrice > b.newPrice) {
+      return 1;
+    }
+    return 0;
+  }
+
+  const applFilter = (filter) => {
+    setModalVisibile(false);
+    switch (filter) {
+      case "cost:High to Low":
+        searchPlaces.map((places) => places.properties.sort(compare));
+        setSortedData(searchPlaces);
+        break;
+      case "cost:Low to High":
+        searchPlaces.map((places) => places.properties.sort(comparison));
+        setSortedData(searchPlaces);
+        break;
+    }
+  };
 
   return (
     <SafeAreaView>
@@ -76,7 +129,7 @@ const PlacesScreen = () => {
         </Pressable>
       </Pressable>
       <ScrollView style={{ backgroundColor: "#f5f5f5" }}>
-        {data
+        {sortedDate
           .filter((item) => item.place === route.params.place)
           .map((item) =>
             item.properties.map((property, index) => {
@@ -99,11 +152,10 @@ const PlacesScreen = () => {
             <ModalButton
               text="Apply"
               style={{
-                marginBottom: 20,
                 color: "white",
                 backgroundColor: "#003580",
               }}
-              onPress={() => setModalVisibile(!modalVisibile)}
+              onPress={() => applFilter(selectedFilter)}
             />
           </ModalFooter>
         }
@@ -118,8 +170,42 @@ const PlacesScreen = () => {
         onTouchOutside={() => setModalVisibile(!modalVisibile)}
       >
         <ModalContent style={{ width: "100%", height: 310 }}>
-          <View>
-            <Text>Sort</Text>
+          <View style={{ flexDirection: "row" }}>
+            <View
+              style={{
+                flex: 2,
+                borderRightWidth: 2,
+                height: 280,
+                marginVertical: 10,
+                borderColor: "#E0E0E0",
+              }}
+            >
+              <Text style={{ textAlign: "center" }}>Sort</Text>
+            </View>
+            <View style={{ flex: 3, margin: 10 }}>
+              {filters.map((item, index) => (
+                <Pressable
+                  onPress={() => setSelectedFilter(item.filter)}
+                  key={index}
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    marginVertical: 5,
+                  }}
+                >
+                  {selectedFilter.includes(item.filter) ? (
+                    <FontAwesome name="circle" size={18} color="green" />
+                  ) : (
+                    <Entypo name="circle" size={18} color="black" />
+                  )}
+                  <Text
+                    style={{ fontSize: 16, fontWeight: "500", marginLeft: 6 }}
+                  >
+                    {item.filter}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
           </View>
         </ModalContent>
       </BottomModal>
